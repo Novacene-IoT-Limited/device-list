@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sensor Device Search</title>
+    <title>Geospaces Supported Devices</title>
     <script>
         const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQkd21hj89rYtyGdmpdkMWjRlD7atSfki850teIuGWHm867uhVV2OP_qopStw0-QLbh_l4hMhmnLgah/pub?gid=0&single=true&output=csv";
 
@@ -23,9 +23,13 @@
 
         function parseCSV(csv) {
             const rows = csv.trim().split("\n").map(row => row.split(","));
-            const headers = rows.shift();
-            if (!headers || headers.length === 0) return [];
-            return rows.map(row => Object.fromEntries(headers.map((header, i) => [header.trim(), row[i] ? row[i].trim() : ""])));
+            const headers = rows.shift().map(header => header.trim());
+            return rows.filter(row => row.length > 1).map(row => {
+                return headers.reduce((obj, header, i) => {
+                    obj[header] = row[i] ? row[i].trim() : "-";
+                    return obj;
+                }, {});
+            });
         }
 
         function displayData(data) {
@@ -34,11 +38,11 @@
             data.forEach(row => {
                 const tr = document.createElement("tr");
                 tr.innerHTML = `
-                    <td>${row.Manufacturer || ""}</td>
-                    <td>${row.Device || ""}</td>
-                    <td>${row.Senses_1 || ""}</td>
-                    <td>${row.Senses_2 || ""}</td>
-                    <td>${row.Senses_3 || ""}</td>
+                    <td>${row.Manufacturer || "-"}</td>
+                    <td>${row.Device || "-"}</td>
+                    <td>${row.Senses_1 || "-"}</td>
+                    <td>${row.Senses_2 || "-"}</td>
+                    <td>${row.Senses_3 || "-"}</td>
                 `;
                 tableBody.appendChild(tr);
             });
@@ -63,24 +67,38 @@
         window.onload = fetchData;
     </script>
     <style>
-        body { font-family: Arial, sans-serif; padding: 20px; }
-        input { margin-bottom: 10px; padding: 5px; width: 300px; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { border: 1px solid black; padding: 8px; text-align: left; }
-        th { background-color: #f2f2f2; }
+        body { font-family: Arial, sans-serif; padding: 20px; background-color: #f8f9fa; }
+        h2 { font-size: 24px; font-weight: bold; margin-bottom: 10px; }
+        input {
+            margin-bottom: 15px; padding: 8px; width: 100%;
+            border: 1px solid #ccc; border-radius: 5px;
+        }
+        table {
+            width: 100%; border-collapse: collapse; background: white;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 5px;
+        }
+        th, td {
+            border: 1px solid #ddd; padding: 10px; text-align: left;
+        }
+        th {
+            background-color: #f2f2f2; font-weight: bold;
+        }
+        tr:nth-child(even) { background-color: #f9f9f9; }
     </style>
 </head>
 <body>
-    <h2>Sensor Device Search</h2>
+    <h2>Geospaces Supported Devices</h2>
+    <p>Search Below to see which devices we support</p>
     <input type="text" id="searchInput" onkeyup="filterData()" placeholder="Search by model or sensor type (e.g., temperature, CO2, etc.)">
     <table id="dataTable">
         <thead>
             <tr>
                 <th>Manufacturer</th>
                 <th>Device</th>
-                <th>Senses_1</th>
-                <th>Senses_2</th>
-                <th>Senses_3</th>
+                <th>Senses 1</th>
+                <th>Senses 2</th>
+                <th>Senses 3</th>
             </tr>
         </thead>
         <tbody id="tableBody"></tbody>
